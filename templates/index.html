@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>论文分析助手</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Markdown 渲染库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- ===== 左侧栏 ===== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <rect width="28" height="28" rx="6" fill="#3370ff"/>
+                        <path d="M7 10h14M7 14h14M7 18h10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>论文助手</span>
+                </div>
+                <button class="btn-new-chat" id="btnNewChat" title="新建对话">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="chat-list" id="chatList">
+                <!-- 动态填充 -->
+                <div class="chat-item empty-hint">
+                    <p>暂无对话</p>
+                    <span>上传一篇论文开始吧</span>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <div class="api-status" id="apiStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">检查 API 状态...</span>
+                    <a href="/settings" class="status-link" title="设置">⚙</a>
+                </div>
+                <div class="upload-area-sidebar" id="uploadAreaSidebar">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 3v10M5 8l5-5 5 5M3 15h14v2H3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>上传论文</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== 主聊天区 ===== -->
+        <main class="chat-main" id="chatMain">
+            <!-- 顶部标题栏 -->
+            <header class="chat-header" id="chatHeader">
+                <button class="btn-toggle-sidebar" id="btnToggleSidebar" title="收起侧栏">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M4 4h12v12H4z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        <path d="M12 4v12" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                </button>
+                <div class="chat-header-info">
+                    <h2 id="currentPaperTitle">论文分析助手</h2>
+                    <span class="chat-header-subtitle" id="currentPaperSubtitle">上传论文开始分析</span>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="btn-header" id="btnSettings" title="API 设置">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
+                            <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <path d="M10 2v3M10 15v3M2 10h3M15 10h3M4.5 4.5l2 2M13.5 13.5l2 2M4.5 15.5l2-2M13.5 6.5l2-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="btn-header" id="btnDownload" title="下载 Word 报告" style="display:none">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 3v10M5 10l5 5 5-5M3 17h14v2H3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>下载报告</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- API Key 未配置提示 -->
+            <div class="api-key-banner" id="apiKeyBanner" style="display:none">
+                <div class="api-key-banner-content">
+                    <span>⚠️ 尚未配置 API Key，请先设置 AI 服务连接</span>
+                    <a href="/settings" class="btn-banner-link">前往设置</a>
+                </div>
+            </div>
+
+            <!-- 消息列表 -->
+            <div class="message-list" id="messageList">
+                <!-- 欢迎界面 -->
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="welcome-icon">
+                        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                            <rect width="56" height="56" rx="14" fill="none" stroke="#06b6d4" stroke-width="1.5" opacity="0.3"/>
+                            <path d="M16 22h24M16 30h24M16 38h16" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+                        </svg>
+                    </div>
+                    <h2>论文分析助手</h2>
+                    <p class="welcome-subtitle">AI 驱动的学术论文智能分析工具</p>
+
+                    <div class="welcome-features">
+                        <div class="welcome-feature">
+                            <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M8 16h5"/></svg></div>
+                            <span>智能摘要</span>
+                        </div>
+                        <div class="welcome-feature">
+                            <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg></div>
+                            <span>关键词提取</span>
+                        </div>
+                        <div class="welcome-feature">
+                            <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg></div>
+                            <span>方法分析</span>
+                        </div>
+                        <div class="welcome-feature">
+                            <div class="wf-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+                            <span>双语翻译</span>
+                        </div>
+                    </div>
+
+                    <div class="welcome-actions">
+                        <button class="btn-primary" id="btnWelcomeUpload">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 2v12M5 9l5-5 5 5M3 16h14v2H3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            上传论文开始分析
+                        </button>
+                    </div>
+                    <div class="welcome-hint">
+                        <p>支持 PDF / DOCX · 拖拽上传 · AI 智能分析</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快捷操作栏 -->
+            <div class="quick-actions" id="quickActions" style="display:none">
+                <button class="btn-quick" data-intent="summary" data-detail="brief">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" fill="none"/><path d="M5 7h6M5 10h4" stroke="currentColor" stroke-linecap="round"/></svg>
+                    快速摘要
+                </button>
+                <button class="btn-quick" data-intent="keywords">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6" stroke="currentColor" fill="none"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-linecap="round"/></svg>
+                    关键词
+                </button>
+                <button class="btn-quick" data-intent="methodology">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h4v4H2zM10 2h4v4h-4zM6 6h4v4H6zM2 10h4v4H2zM10 10h4v4h-4z" stroke="currentColor" fill="none"/></svg>
+                    研究方法
+                </button>
+                <button class="btn-quick" data-intent="full_report">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2h10l2 3v9a1 1 0 01-1 1H2a1 1 0 01-1-1V5l2-3z" stroke="currentColor" fill="none"/><path d="M3 2v3h10V2" stroke="currentColor" fill="none"/></svg>
+                    完整报告
+                </button>
+                <button class="btn-quick" data-intent="bilingual">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 6h6M5 3v6M10 4l3 4-3 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    双语摘要
+                </button>
+            </div>
+
+            <!-- 底部输入区 -->
+            <footer class="chat-input-area" id="chatInputArea">
+                <div class="chat-input-row">
+                    <label class="btn-attach" id="btnAttach" title="上传论文">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                            <path d="M11 3v12M5 9l6-6 6 6M3 18h16v2H3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </label>
+                    <div class="input-wrapper">
+                        <textarea
+                            id="messageInput"
+                            placeholder="输入问题或点击上方快捷按钮..."
+                            rows="1"
+                            maxlength="5000"
+                        ></textarea>
+                    </div>
+                    <button class="btn-send" id="btnSend" title="发送">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                            <path d="M2 2l18 9L2 20l4-9-4-9z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button class="btn-stop" id="btnStop" title="停止生成" style="display:none">
+                        <svg width="18" height="18" viewBox="0 0 22 22" fill="currentColor">
+                            <rect x="3" y="3" width="16" height="16" rx="3" fill="currentColor"/>
+                        </svg>
+                    </button>
+                </div>
+            </footer>
+        </main>
+
+        <!-- 隐藏的文件上传 input -->
+        <input type="file" id="fileInput" accept=".pdf,.docx" style="display:none">
+    </div>
+
+    <!-- 拖拽覆盖层 -->
+    <div class="drag-overlay" id="dragOverlay">
+        <div class="drag-content">
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <rect x="16" y="8" width="32" height="48" rx="4" stroke="#3370ff" stroke-width="2" fill="none" stroke-dasharray="4 2"/>
+                <path d="M24 30l8-8 8 8M32 22v16" stroke="#3370ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p>释放文件以上传</p>
+        </div>
+    </div>
+
+    <script src="/static/js/chat.js"></script>
+</body>
+</html>

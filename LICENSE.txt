@@ -1,0 +1,18 @@
+论文分析助手 - 最终用户许可协议
+====================================
+
+Copyright (c) 2025 PaperAssistant Team
+
+本软件按"原样"提供，不提供任何明示或暗示的担保。
+
+你可以自由使用、复制、分发本软件。
+
+本软件使用以下第三方开源组件：
+- PyMuPDF (AGPL/Commercial)
+- Flask (BSD)
+- python-docx (MIT)
+- Anthropic Python SDK (MIT)
+- OpenAI Python SDK (Apache 2.0)
+- PyWebView (BSD)
+
+使用 AI 分析功能需要用户自行提供对应服务商的 API Key。

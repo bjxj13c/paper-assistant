@@ -13,7 +13,7 @@ import sys
 import io
 
 # Windows 终端 UTF-8 编码修复
-if sys.platform == "win32":
+if sys.platform == "win32" and sys.stdout is not None:
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 

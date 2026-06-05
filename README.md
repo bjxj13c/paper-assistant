@@ -1,30 +1,36 @@
 # 论文阅读与摘要生成助手
 
-AI 驱动的论文学术分析工具。上传 PDF 论文，自动生成结构化分析报告（摘要、关键词、研究方法、优缺点、阅读建议），输出 Markdown + Word 文档，支持飞书机器人自动回复。
+AI 驱动的论文学术分析工具。上传 PDF/Word 论文，自动生成结构化分析报告（摘要、关键词、研究方法、优缺点、阅读建议）。
 
-## 快速开始
+## 🆕 桌面聊天应用
 
-### 1. 安装依赖
+现已升级为**独立桌面应用**，拥有类似微信/飞书的聊天界面！
+
+### 一键启动
 
 ```bash
 cd paper-assistant
 pip install -r requirements.txt
+python app.py
 ```
 
-### 2. 配置 AI API Key
+应用将自动打开桌面窗口（或浏览器），在聊天框中：
+1. **上传论文**：拖拽或点击上传 PDF / DOCX 文件
+2. **自动分析**：AI 自动生成论文摘要
+3. **快捷操作**：一键提取关键词、分析研究方法、生成完整报告
+4. **自由提问**：在输入框中输入问题，AI 基于论文内容回答
+5. **下载报告**：点击右上角下载按钮，导出 Word 分析报告
+
+### 启动选项
 
 ```bash
-cp .env.example .env
+python app.py              # 默认：尝试桌面窗口，不可用时自动降级浏览器
+python app.py --browser    # 强制使用浏览器打开
+python app.py --desktop    # 强制使用桌面窗口 (需要 pywebview)
+python app.py --port 5200  # 指定端口
 ```
 
-编辑 `.env`，填入你的 AI API Key（推荐 DeepSeek，便宜且速度快）：
-
-```
-AI_PROVIDER=deepseek
-DEEPSEEK_API_KEY=sk-你的Key
-```
-
-### 3. 命令行使用
+## 命令行使用（原有功能）
 
 ```bash
 # 完整分析一篇论文（生成 Markdown + Word 报告）
@@ -139,7 +145,13 @@ paper-assistant/
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
-├── run.py                # 入口：python run.py [analyze|summarize|keywords|ask|bilingual|bot]
+├── app.py                # 🆕 桌面应用入口
+├── server.py             # 🆕 Flask API 服务
+├── templates/
+│   └── index.html        # 🆕 聊天界面
+├── static/
+│   ├── css/style.css     # 🆕 聊天样式
+│   └── js/chat.js        # 🆕 前端逻辑
 ├── config.py             # 配置管理（自动加载 .env）
 ├── bot.py                # 飞书机器人核心逻辑
 ├── src/

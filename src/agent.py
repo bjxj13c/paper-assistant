@@ -31,23 +31,34 @@ class PaperAgent:
     论文分析智能体，自动适配国内 AI API（DeepSeek / 智谱 / 通义千问 等）。
     """
 
-    def __init__(self):
+    def __init__(self, api_key: str = None, provider: str = None, model: str = None, base_url: str = None):
         self.sdk_type = config.AI_SDK_TYPE
-        self.model = config.AI_MODEL
+        self.model = model or config.AI_MODEL
         self.client = None
+        self._custom_api_key = api_key
+        self._custom_provider = provider
+        self._custom_base_url = base_url
+        if provider:
+            provider_info = config.PROVIDER_CONFIG.get(provider, {})
+            self.sdk_type = provider_info.get("sdk_type", "openai")
+            if not model:
+                self.model = provider_info.get("default_model", config.AI_MODEL)
+            if not base_url:
+                self._custom_base_url = provider_info.get("base_url", config.AI_API_BASE)
         self._init_client()
 
     def _init_client(self):
         """根据 provider 初始化对应的客户端。"""
-        api_key = config.AI_API_KEY
+        api_key = self._custom_api_key or config.AI_API_KEY
+        base_url = self._custom_base_url or config.AI_API_BASE
 
         if not api_key:
-            provider_info = config.PROVIDER_CONFIG.get(config.AI_PROVIDER, {})
+            provider_info = config.PROVIDER_CONFIG.get(self._custom_provider or config.AI_PROVIDER, {})
             env_name = provider_info.get("api_key_env", "UNKNOWN")
             raise RuntimeError(
-                f"未找到 API Key。请设置环境变量: {env_name}\n"
-                f"例如: export {env_name}=your_key\n"
-                f"当前 provider: {config.AI_PROVIDER}\n"
+                f"未找到 API Key。请在设置页面填入 API Key。\n"
+                f"环境变量: {env_name}\n"
+                f"当前 provider: {self._custom_provider or config.AI_PROVIDER}\n"
                 f"支持的 provider: deepseek / zhipu / qwen / moonshot / openai / anthropic"
             )
 
@@ -55,13 +66,13 @@ class PaperAgent:
             import anthropic
             self.client = anthropic.Anthropic(
                 api_key=api_key,
-                base_url=config.AI_API_BASE,
+                base_url=base_url,
             )
         else:
             import openai
             self.client = openai.OpenAI(
                 api_key=api_key,
-                base_url=config.AI_API_BASE,
+                base_url=base_url,
             )
 
     def _call_llm(self, system_prompt: str, user_prompt: str, max_tokens: int = 4096) -> str:

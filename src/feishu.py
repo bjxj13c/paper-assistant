@@ -299,15 +299,16 @@ def _build_markdown_report(title: str, content: str) -> str:
 
 
 def save_as_docx(result: AnalysisResult, filepath: str = "") -> str:
-    """将分析报告导出为 Word (.docx) 文档。"""
+    """将分析报告导出为 Word (.docx) 文档，包含自动目录（TOC）。"""
     from docx import Document
     from docx.shared import Pt, Inches, Cm, RGBColor
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
-    from docx.enum.style import WD_STYLE_TYPE
+    from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+    from docx.oxml.ns import qn, nsdecls
+    from docx.oxml import parse_xml
 
     doc = Document()
 
-    # 设置默认字体
+    # ===== 样式配置 =====
     style = doc.styles["Normal"]
     font = style.font
     font.name = "Microsoft YaHei"
@@ -315,59 +316,129 @@ def save_as_docx(result: AnalysisResult, filepath: str = "") -> str:
     style.paragraph_format.space_after = Pt(6)
     style.paragraph_format.line_spacing = 1.5
 
-    # 标题
+    # 设置标题样式
+    for i in range(1, 4):
+        heading_style = doc.styles[f"Heading {i}"]
+        heading_style.font.name = "Microsoft YaHei"
+        if i == 1:
+            heading_style.font.size = Pt(18)
+            heading_style.font.color.rgb = RGBColor(0x1F, 0x23, 0x29)
+        elif i == 2:
+            heading_style.font.size = Pt(15)
+            heading_style.font.color.rgb = RGBColor(0x33, 0x70, 0xFF)
+        else:
+            heading_style.font.size = Pt(13)
+            heading_style.font.color.rgb = RGBColor(0x1F, 0x23, 0x29)
+
+    # ===== 封面标题 =====
     h = doc.add_heading("论文分析报告", level=0)
     h.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    doc.add_paragraph(f"论文标题：{result.title or '未知'}")
-    doc.add_paragraph(f"生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    doc.add_paragraph("—" * 40)
+    info_para = doc.add_paragraph()
+    info_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    info_para.add_run(f"论文标题：{result.title or '未知'}").font.size = Pt(12)
+    doc.add_paragraph()
 
-    def add_section(doc, heading, body_list):
-        doc.add_heading(heading, level=2)
+    time_para = doc.add_paragraph()
+    time_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    time_para.add_run(f"生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}").font.size = Pt(10)
+    time_para.runs[0].font.color.rgb = RGBColor(0x8F, 0x95, 0x9E)
+
+    # ===== 目录页 =====
+    doc.add_paragraph()  # 空行
+
+    # 插入分页符
+    run = doc.add_paragraph().add_run()
+    run._element.append(parse_xml(f'<w:br {nsdecls("w")} w:type="page"/>'))
+
+    # 目录标题
+    toc_heading = doc.add_paragraph()
+    toc_heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = toc_heading.add_run("目  录")
+    run.font.size = Pt(16)
+    run.font.bold = True
+    run.font.name = "Microsoft YaHei"
+    doc.add_paragraph()
+
+    # 插入 TOC 字段
+    paragraph = doc.add_paragraph()
+    run = paragraph.add_run()
+    fldChar_begin = parse_xml(f'<w:fldChar {nsdecls("w")} w:fldCharType="begin"/>')
+    run._element.append(fldChar_begin)
+
+    run2 = paragraph.add_run()
+    instrText = parse_xml(f'<w:instrText {nsdecls("w")} xml:space="preserve"> TOC \\o "1-3" \\h \\z \\u </w:instrText>')
+    run2._element.append(instrText)
+
+    run3 = paragraph.add_run()
+    fldChar_separate = parse_xml(f'<w:fldChar {nsdecls("w")} w:fldCharType="separate"/>')
+    run3._element.append(fldChar_separate)
+
+    run4 = paragraph.add_run("（在 Word 中右键此处 → 更新域 → 更新整个目录）")
+    run4.font.size = Pt(9)
+    run4.font.color.rgb = RGBColor(0x8F, 0x95, 0x9E)
+
+    run5 = paragraph.add_run()
+    fldChar_end = parse_xml(f'<w:fldChar {nsdecls("w")} w:fldCharType="end"/>')
+    run5._element.append(fldChar_end)
+
+    # 分页
+    run = doc.add_paragraph().add_run()
+    run._element.append(parse_xml(f'<w:br {nsdecls("w")} w:type="page"/>'))
+
+    # ===== 正文内容（使用 Heading 样式，TOC 自动识别） =====
+
+    def add_section(heading, level, body_list):
+        """添加章节，使用正确的 Heading 样式以便 TOC 识别。"""
+        doc.add_heading(heading, level=level)
         if isinstance(body_list, str):
             doc.add_paragraph(body_list)
-        else:
+        elif isinstance(body_list, list):
             for item in body_list:
                 doc.add_paragraph(item, style="List Bullet")
 
     if result.abstract:
-        add_section(doc, "摘要", result.abstract)
+        add_section("摘要", 1, result.abstract)
 
     if result.keywords:
-        doc.add_heading("关键词", level=2)
+        doc.add_heading("关键词", level=1)
         p = doc.add_paragraph()
         for i, k in enumerate(result.keywords):
             if i > 0:
                 p.add_run("  |  ")
             run = p.add_run(k)
-            run.font.color.rgb = RGBColor(0, 102, 204)
+            run.font.color.rgb = RGBColor(0x33, 0x70, 0xFF)
+            run.font.size = Pt(11)
 
     if result.research_questions:
-        add_section(doc, "研究问题", [f"{i}. {q}" for i, q in enumerate(result.research_questions, 1)])
+        add_section("研究问题", 1,
+            [f"{i}. {q}" for i, q in enumerate(result.research_questions, 1)])
 
     if result.methodology:
-        add_section(doc, "研究方法", result.methodology)
+        add_section("研究方法", 1, result.methodology)
 
     if result.contributions:
-        add_section(doc, "主要贡献", result.contributions)
+        add_section("主要贡献", 1, result.contributions)
 
     if result.strengths:
-        add_section(doc, "优点", result.strengths)
+        add_section("优点", 1, result.strengths)
 
     if result.limitations:
-        add_section(doc, "局限性", result.limitations)
+        add_section("局限性", 1, result.limitations)
 
     if result.reading_notes:
-        add_section(doc, "阅读建议", result.reading_notes)
+        add_section("阅读建议", 1, result.reading_notes)
 
+    # ===== 页脚 =====
+    doc.add_paragraph()
     doc.add_paragraph("—" * 40)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run("本报告由论文阅读与摘要生成助手自动生成。")
     run.font.size = Pt(9)
-    run.font.color.rgb = RGBColor(128, 128, 128)
+    run.font.color.rgb = RGBColor(0x80, 0x80, 0x80)
 
+    # ===== 保存 =====
     if not filepath:
         output_path = Path(config.OUTPUT_DIR)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

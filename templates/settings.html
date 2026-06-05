@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置 - 论文分析助手</title>
+    <style>
+        :root {
+            --cyan-400: #06b6d4;
+            --cyan-500: #0ea5e9;
+            --cyan-600: #0284c7;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --purple-500: #a855f7;
+            --purple-600: #9333ea;
+            --bg-black: #000000;
+            --bg-card: rgba(15, 23, 42, 0.6);
+            --border-subtle: rgba(6, 182, 212, 0.1);
+            --border-glow: rgba(6, 182, 212, 0.3);
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-tertiary: #64748b;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                         "Microsoft YaHei", "Helvetica Neue", sans-serif;
+            background: var(--bg-black);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.03;
+            background-image:
+                linear-gradient(rgba(6, 182, 212, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.3) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 70%);
+        }
+
+        .settings-container {
+            position: relative; z-index: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            width: 100%; max-width: 520px;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(6, 182, 212, 0.05);
+        }
+
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: transparent; color: var(--text-secondary);
+            border: none; cursor: pointer; font-size: 14px;
+            padding: 8px 14px; border-radius: var(--radius-sm);
+            margin: 16px 0 0 20px; text-decoration: none;
+            transition: all 0.2s var(--transition-smooth);
+        }
+        .btn-back:hover { color: var(--cyan-400); background: rgba(6, 182, 212, 0.06); }
+
+        .settings-header { padding: 28px 32px 0; text-align: center; }
+        .logo-icon {
+            width: 60px; height: 60px;
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.1);
+        }
+        .settings-header h1 {
+            font-size: 22px; font-weight: 700;
+            background: linear-gradient(135deg, var(--cyan-400), var(--blue-500), var(--purple-500));
+            background-size: 200% 200%;
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-shift 4s ease infinite;
+            margin-bottom: 6px;
+        }
+        .settings-header p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+        .settings-body { padding: 28px 32px 32px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block; font-size: 14px; font-weight: 500;
+            margin-bottom: 6px; color: var(--text-primary);
+        }
+        .form-group .hint { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; line-height: 1.5; }
+
+        .form-group select, .form-group input {
+            width: 100%; padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            font-size: 14px; font-family: inherit;
+            color: var(--text-primary);
+            transition: all 0.2s var(--transition-smooth);
+            outline: none;
+        }
+        .form-group select:focus, .form-group input:focus {
+            border-color: var(--cyan-400);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.1);
+        }
+        .form-group select option { background: #0f172a; color: var(--text-primary); }
+
+        .api-key-input-wrapper { position: relative; }
+        .api-key-input-wrapper input { padding-right: 48px; }
+        .btn-toggle-visibility {
+            position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+            border: none; background: transparent; color: var(--text-tertiary);
+            cursor: pointer; padding: 6px; border-radius: 4px; font-size: 16px;
+        }
+        .btn-toggle-visibility:hover { color: var(--cyan-400); }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 24px; }
+        .btn {
+            padding: 10px 22px; border-radius: var(--radius-sm);
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s var(--transition-smooth);
+            font-family: inherit;
+        }
+        .btn-primary {
+            flex: 1; border: none;
+            background: linear-gradient(135deg, var(--cyan-500), var(--blue-600));
+            color: white;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--blue-500), var(--purple-600));
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+        }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-test {
+            background: transparent; color: var(--cyan-400);
+            border: 1px solid var(--border-glow);
+        }
+        .btn-test:hover { background: rgba(6, 182, 212, 0.08); }
+        .btn-test:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .status-message {
+            padding: 10px 14px; border-radius: var(--radius-sm);
+            font-size: 13px; margin-top: 12px; display: none; line-height: 1.5;
+        }
+        .status-message.success { display: block; background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+        .status-message.error { display: block; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+        .status-message.info { display: block; background: rgba(6,182,212,0.08); color: var(--cyan-400); border: 1px solid var(--border-subtle); }
+
+        .provider-info {
+            background: rgba(6, 182, 212, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm); padding: 10px 14px;
+            margin-top: 8px; font-size: 12px; color: var(--text-secondary); line-height: 1.6;
+        }
+        .provider-info strong { color: var(--text-primary); }
+        .provider-info a { color: var(--cyan-400); text-decoration: none; }
+        .provider-info a:hover { text-decoration: underline; }
+
+        .spinner {
+            display: inline-block; width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 6px; vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .settings-footer { text-align: center; padding: 0 32px 24px; font-size: 12px; color: var(--text-tertiary); }
+        .settings-footer a { color: var(--cyan-400); text-decoration: none; }
+        .settings-footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <a href="/" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            返回主页
+        </a>
+
+        <div class="settings-header">
+            <div class="logo-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <rect width="28" height="28" rx="6" fill="#06b6d4"/>
+                    <path d="M7 10h14M7 14h14M7 18h10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h1>API 设置</h1>
+            <p>配置 AI 服务连接，支持 DeepSeek、智谱、通义千问等多种服务</p>
+        </div>
+
+        <div class="settings-body">
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="provider">AI 服务商</label>
+                    <select id="provider" name="provider"></select>
+                    <div class="provider-info" id="providerInfo"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="apiKey">API Key</label>
+                    <div class="api-key-input-wrapper">
+                        <input type="password" id="apiKey" name="api_key" placeholder="请输入你的 API Key" autocomplete="off">
+                        <button type="button" class="btn-toggle-visibility" id="btnToggleVis" title="显示/隐藏">👁</button>
+                    </div>
+                    <div class="hint">你的 API Key 仅保存在本地，不会上传到任何服务器</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="model">模型名称 <span style="color:var(--text-tertiary);font-weight:400">（可选）</span></label>
+                    <input type="text" id="model" name="model" placeholder="留空使用默认模型">
+                    <div class="hint">留空则使用服务商默认模型</div>
+                </div>
+
+                <div class="status-message" id="statusMessage"></div>
+
+                <div class="btn-row">
+                    <button type="button" class="btn btn-test" id="btnTest">测试连接</button>
+                    <button type="submit" class="btn btn-primary" id="btnSave">保存设置</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="settings-footer">设置保存在本地 · <a href="/">返回论文分析</a></div>
+    </div>
+
+    <script>
+        const providerInfoMap = {
+            deepseek: { name: 'DeepSeek', model: 'deepseek-chat', url: 'https://platform.deepseek.com', desc: '国产高性价比大模型' },
+            zhipu: { name: '智谱 AI', model: 'glm-4-plus', url: 'https://open.bigmodel.cn', desc: '清华系大模型，GLM-4 系列' },
+            qwen: { name: '通义千问', model: 'qwen-plus', url: 'https://dashscope.aliyun.com', desc: '阿里云大模型服务' },
+            moonshot: { name: '月之暗面', model: 'moonshot-v1-8k', url: 'https://platform.moonshot.cn', desc: '长文本处理能力强' },
+            openai: { name: 'OpenAI', model: 'gpt-4o', url: 'https://platform.openai.com', desc: 'GPT 系列模型' },
+            anthropic: { name: 'Anthropic', model: 'claude-sonnet-4-6', url: 'https://console.anthropic.com', desc: '擅长长文本分析与推理' },
+        };
+        const providerNames = { deepseek: 'DeepSeek（推荐）', zhipu: '智谱 AI (GLM-4)', qwen: '通义千问 (Qwen)', moonshot: '月之暗面 (Moonshot)', openai: 'OpenAI (GPT-4o)', anthropic: 'Anthropic (Claude)' };
+
+        const els = {
+            provider: document.getElementById('provider'),
+            apiKey: document.getElementById('apiKey'),
+            model: document.getElementById('model'),
+            btnSave: document.getElementById('btnSave'),
+            btnTest: document.getElementById('btnTest'),
+            btnToggleVis: document.getElementById('btnToggleVis'),
+            statusMessage: document.getElementById('statusMessage'),
+            providerInfo: document.getElementById('providerInfo'),
+            form: document.getElementById('settingsForm'),
+        };
+
+        // Populate provider select
+        Object.entries(providerNames).forEach(([value, label]) => {
+            const opt = document.createElement('option');
+            opt.value = value; opt.textContent = label;
+            els.provider.appendChild(opt);
+        });
+
+        function showStatus(message, type = 'info') {
+            els.statusMessage.textContent = message;
+            els.statusMessage.className = `status-message ${type}`;
+        }
+
+        function updateProviderInfo() {
+            const info = providerInfoMap[els.provider.value];
+            if (info) {
+                els.providerInfo.innerHTML = `<strong>${info.name}</strong> · 默认模型: ${info.model}<br>获取 Key: <a href="${info.url}" target="_blank">${info.url}</a><br><span style="color:var(--text-tertiary)">${info.desc}</span>`;
+            }
+            if (!els.model.dataset.userEdited) {
+                els.model.placeholder = `默认: ${info.model}`;
+            }
+        }
+        els.provider.addEventListener('change', updateProviderInfo);
+        els.model.addEventListener('input', () => { els.model.dataset.userEdited = 'true'; });
+
+        els.btnToggleVis.addEventListener('click', () => {
+            const isPassword = els.apiKey.type === 'password';
+            els.apiKey.type = isPassword ? 'text' : 'password';
+            els.btnToggleVis.textContent = isPassword ? '🙈' : '👁';
+        });
+
+        async function loadSettings() {
+            try {
+                const resp = await fetch('/api/settings');
+                const data = await resp.json();
+                if (data.provider) { els.provider.value = data.provider; }
+                if (data.model) { els.model.value = data.model; els.model.dataset.userEdited = 'true'; }
+                if (data.has_api_key) { els.apiKey.placeholder = '已设置 (如需修改请输入新 Key)'; }
+                updateProviderInfo();
+            } catch (err) { console.error('Load settings failed:', err); }
+        }
+
+        els.btnTest.addEventListener('click', async () => {
+            const apiKey = els.apiKey.value.trim();
+            if (!apiKey) { showStatus('请先输入 API Key', 'error'); els.apiKey.focus(); return; }
+            els.btnTest.disabled = true;
+            els.btnTest.innerHTML = '<span class="spinner"></span>测试中...';
+            showStatus('正在测试连接...', 'info');
+            try {
+                const resp = await fetch('/api/settings/test', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider: els.provider.value, api_key: apiKey, model: els.model.value.trim() }),
+                });
+                const data = await resp.json();
+                showStatus(data.success ? '✅ 连接成功！' + data.message : '❌ ' + data.error, data.success ? 'success' : 'error');
+            } catch (err) {
+                showStatus('❌ 网络错误: ' + err.message, 'error');
+            } finally {
+                els.btnTest.disabled = false;
+                els.btnTest.textContent = '测试连接';
+            }
+        });
+
+        els.form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const apiKey = els.apiKey.value.trim();
+            if (!apiKey) { showStatus('请输入 API Key', 'error'); els.apiKey.focus(); return; }
+            els.btnSave.disabled = true;
+            els.btnSave.innerHTML = '<span class="spinner"></span>保存中...';
+            try {
+                const resp = await fetch('/api/settings', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider: els.provider.value, api_key: apiKey, model: els.model.value.trim() }),
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    showStatus('✅ 设置已保存！即将返回首页...', 'success');
+                    els.apiKey.value = '';
+                    setTimeout(() => { window.location.href = '/'; }, 1200);
+                } else {
+                    showStatus('❌ ' + data.error, 'error');
+                }
+            } catch (err) {
+                showStatus('❌ 网络错误: ' + err.message, 'error');
+            } finally {
+                els.btnSave.disabled = false;
+                els.btnSave.textContent = '保存设置';
+            }
+        });
+
+        loadSettings();
+    </script>
+</body>
+</html>
